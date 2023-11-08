@@ -139,18 +139,20 @@ class Aplication(Functions):
         self.table()
         root.mainloop()
         pass
-    def labels(self,master,text,x,y):
-        self.lb_config = Label(master=master,text=text,font=st_f['f6'])
+    def labels(self,master,text,x,y,**kargs):
+        self.lb_config = Label(master=master,text=text,font=st_f['f6'],fg=c['az'])
         self.lb_config.place_configure(x=x, y=y)
     
     def entrys(self,master,width,height,x,y,**kargs):
         entry = Entry(master=master)
         entry.place_configure(x=x,y=y,width=width,height=height)
+        entry.configure(borderwidth=1,relief='solid')
         return entry
     
     #Função para todas as configurações da tela
     def winConfig(self):
         self.root.geometry("600x320")
+        self.root.title("Mega Data")
         self.root.config(bg=c['br'])
         self.root.resizable(False,False)# impede que a tela seja maximizada ou minimizada
         #Define que a tela sempre seja criada no meio da tela do computador--------------------------------------------------------------
@@ -166,7 +168,7 @@ class Aplication(Functions):
         #--------------------------------------------------------------------------------------------------------------------------------
     #função que cria os frames da tela
     def frames(self):
-        self.fm_up = Frame(self.root,bg=c['cz'],width=580, height=42,borderwidth=1, highlightbackground=c['az'], highlightthickness=1)
+        self.fm_up = Frame(self.root,bg=c['cz'],width=580, height=45,borderwidth=1, highlightbackground=c['az'], highlightthickness=1)
         self.fm_up.place_configure(x=10,y=2)
 
         self.fm_superior = Frame(self.root,width=580, height=75,borderwidth=1, highlightbackground=c['az'], highlightthickness=1)
@@ -222,7 +224,11 @@ class Aplication(Functions):
                 )
         self.style.configure("my.DataEntry.TButton", font=st_f['f3'], foreground=c['az'],background=c['az'])# Define a fonte do cabeçalho
         # #widgets frame de cima
-        # self.labels(master=self.fm_superior,text=self.n_conc,x=20,y=15)
+        self.labels(master=self.fm_up,text='Nº concurso',x=10,y=1)
+        self.seach = self.entrys(master=self.fm_up,x=10, y=20, width=110,height=20)
+
+        self.bt_seach = Button(self.fm_up,text="Pesquisar",fg=c['az'],font=st_f['f3'])
+        self.bt_seach.place_configure(x=143, y=8, width=100, height=23)
 
         self.labels(master=self.fm_baixo,text='Nº Concurso',x=20, y=15)
         self.concurso = self.entrys(master=self.fm_baixo,x=20, y=35, width=100,height=25)
@@ -241,8 +247,7 @@ class Aplication(Functions):
         self.bt_alterar.place_configure(x=480, y=118, width=80, height=25)
     
         self.labels(master=self.fm_baixo,text='Numero sorteado',x=280, y=16)
-        self.entry_num = Entry(self.fm_baixo)
-        self.entry_num.place_configure(x=280, y=35, width=175,height=25)
+        self.entry_num = self.entrys(master=self.fm_baixo,x=280, y=35, width=175,height=25)
 
         self.labels(master=self.fm_baixo,text='Venceu',x=485, y=16)
         self.options= ttk.Combobox(self.fm_baixo,values=['Sim','Não'])
