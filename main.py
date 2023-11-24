@@ -262,6 +262,9 @@ class Aplication(Functions):
         self.bt_seach = Button(self.fm_up,text="Pesquisar",fg=c['az'],font=st_f['f3'], command= self.seach_conc)
         self.bt_seach.place_configure(x=143, y=17, width=100, height=23)
 
+        self.gerar_num = Button(self.fm_up,text='Novo Jogo',fg=c['az'],font=st_f['f3'], command='')
+        self.gerar_num.place_configure(x=475, y=17, width=100, height=23)
+
         self.labels(master=self.fm_baixo,text='Nº Concurso',x=20, y=15)
 
         self.concurso = self.entrys(master=self.fm_baixo,x=20, y=35, width=100,height=25)
@@ -293,55 +296,79 @@ class Aplication(Functions):
         self.options.place_configure(x=485, y=35, width=55,height=25)
         self.options.bind("<<ComboboxSelected>>", self.combobox_selected)
 
-if __name__ == "__main__":
-    Aplication()
+# if __name__ == "__main__":
+#     Aplication()
 
+#insere dados no arquivo txt 1º
+# def insert_in_database():
+#     conn = sqlite3.connect('MegaData.db')
+#     cursor = conn.cursor()
+#     # Inicializar variáveis para armazenar os dados do concurso
+#     concurso = ""
+#     data_concurso = ""
+#     apostas = ""
+#     vencedor = ""
 
-def insert_in_database():
-    conn = sqlite3.connect('MegaData.db')
-    cursor = conn.cursor()
-    # Inicializar variáveis para armazenar os dados do concurso
-    concurso = ""
-    data_concurso = ""
-    apostas = ""
-    vencedor = ""
+#     # Abrir o arquivo de texto
+#     with open("dados_concursos.txt", "r") as arquivo:
+#         for linha in arquivo:
+#             linha = linha.strip()  # Remover espaços em branco
 
-    # Abrir o arquivo de texto
-    with open("dados_concursos.txt", "r") as arquivo:
-        for linha in arquivo:
-            linha = linha.strip()  # Remover espaços em branco
+#             if linha.startswith("Concurso:"):
+#                 # Extrair o número do concurso
+#                 concurso = linha.split("Concurso:")[1].split('-')[0].strip()
+#                 vencedor = "Ganhadora" if "Ganhadora" in linha else ""
+#             elif linha.startswith("Data:"):
+#                 # Extrair a data do concurso no formato "dd/mm/yyyy"
+#                 data_concurso = linha.split("Data:")[1].strip()
+#                 # Converter para o formato "aaaa-mm-dd" esperado pelo SQL Server
+#                 data_concurso = data_concurso.split("/")
+#                 data_concurso = f"{data_concurso[2]}-{data_concurso[1]}-{data_concurso[0]}"
+#             elif linha.startswith("Aposta:"):
+#                 # Extrair a sequência de números da aposta
+#                 apostas = linha.split("Aposta:")[1].strip()
 
-            if linha.startswith("Concurso:"):
-                # Extrair o número do concurso
-                concurso = linha.split("Concurso:")[1].split('-')[0].strip()
-                vencedor = "Ganhadora" if "Ganhadora" in linha else ""
-            elif linha.startswith("Data:"):
-                # Extrair a data do concurso no formato "dd/mm/yyyy"
-                data_concurso = linha.split("Data:")[1].strip()
-                # Converter para o formato "aaaa-mm-dd" esperado pelo SQL Server
-                data_concurso = data_concurso.split("/")
-                data_concurso = f"{data_concurso[2]}-{data_concurso[1]}-{data_concurso[0]}"
-            elif linha.startswith("Aposta:"):
-                # Extrair a sequência de números da aposta
-                apostas = linha.split("Aposta:")[1].strip()
+#                 # Inserir os dados no banco de dados quando todas as informações estiverem disponíveis
+#                 if concurso and data_concurso and apostas:
+#                     try:
+#                         # Inserir os dados na tabela do banco de dados
+#                         cursor.execute("INSERT INTO HIST_MEGA_SENA (Concurso, Data_concurso, Aposta, Vencedor) VALUES (?, ?, ?, ?)",
+#                                     (concurso, data_concurso, apostas, vencedor))
+#                         conn.commit()
+#                         # Limpar as variáveis
+#                         concurso = ""
+#                         data_concurso = ""
+#                         apostas = ""
+#                         vencedor = ""
+#                     except Exception as e:
+#                         print("Erro", str(e))
 
-                # Inserir os dados no banco de dados quando todas as informações estiverem disponíveis
-                if concurso and data_concurso and apostas:
-                    try:
-                        # Inserir os dados na tabela do banco de dados
-                        cursor.execute("INSERT INTO HIST_MEGA_SENA (Concurso, Data_concurso, Aposta, Vencedor) VALUES (?, ?, ?, ?)",
-                                    (concurso, data_concurso, apostas, vencedor))
-                        conn.commit()
-                        # Limpar as variáveis
-                        concurso = ""
-                        data_concurso = ""
-                        apostas = ""
-                        vencedor = ""
-                    except Exception as e:
-                        print("Erro", str(e))
+#     # Fechar a conexão com o banco de dados
+#     cursor.close()
 
-    # Fechar a conexão com o banco de dados
-    cursor.close()
+import sqlite3
+from collections import Counter
+import random
+
+def extrair_dados_e_escrever_arquivo():
+    # Conecta-se ao banco de dados SQLite
+
+    # Executa a consulta para obter todos os dados
+    conexao.cursor.execute("SELECT CONCURSO, DATA_CONCURSO, APOSTA, VENCEDOR FROM HIST_MEGA_SENA")
+    resultados = conexao.cursor.fetchall()
+
+    # Abre o arquivo para escrita
+    with open('dados_concursos.txt', 'w') as arquivo:
+        for resultado in resultados:
+            concurso = resultado[0]
+            data = resultado[1]
+            aposta = resultado[2]
+            vencedor = resultado[3]
+
+            # Escreve os dados no arquivo no formato especificado
+            arquivo.write(f"Concurso: {concurso} - {vencedor}\n")
+            arquivo.write(f"Data: {data}\n")
+            arquivo.write(f"Aposta: {aposta}\n\n")
 
 def gerador_de_num():
     # Lista para armazenar os números das apostas ganhadoras
@@ -372,3 +399,8 @@ def gerador_de_num():
     print("Os 6 números mais frequentes nas apostas ganhadoras são:", seis_mais_frequentes)
     print("Seu jogo gerado com base nesses números é:", jogo)
 
+# Chama a função para extrair dados e escrever no arquivo
+extrair_dados_e_escrever_arquivo()
+
+# Chama a função para realizar as análises
+gerador_de_num()
