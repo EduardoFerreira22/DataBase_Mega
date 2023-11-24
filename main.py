@@ -7,6 +7,7 @@ from datetime import datetime
 import sqlite3
 
 
+
 #dicionários de fontes e cores
 st_f = {'f1':('M Hei PRC', 10, 'bold'),'f2':('Helvetica', 8,'bold','italic'),'f3':('Helvetica', 10, 'bold'),'f4':("Helvetica", 12, "bold"),'f5':('Helvetica', 7, 'italic'),'f6':('New', 9),'f7':('Arial', 10, 'bold')}
 
@@ -25,16 +26,47 @@ class Conection():
         # Inicializar variáveis para armazenar os dados do concurso
 
 conexao = Conection()
-
-
 class Functions():
     def __init__(self):
-        pass
+        self.premio = None
     
     def ultimo_concurso(self):
         conexao.cursor.execute("SELECT * FROM MAX_CONCURSO")
         self.resu = conexao.cursor.fetchall()
         return self.resu
+    
+    def seach_conc(self):
+        num_conc = self.seach.get()
+        if not num_conc:
+            messagebox.showwarning("Atenção", "É necessário inserir o Nº do concurso para que a consulta seja realizada.")
+        else:
+            # Limpa a Treeview
+            for row in self.tree.get_children():
+                self.tree.delete(row)
+
+            conexao.cursor.execute(f"SELECT CONCURSO, DATA_CONCURSO, APOSTA, VENCEDOR, PREMIO FROM HIST_MEGA_SENA WHERE CONCURSO = {num_conc}")
+            resultado = conexao.cursor.fetchone()
+            if resultado:
+                formatted_date = self.formatar_data_para_exibicao(resultado[1])
+                formatted_row = resultado[:1] + (formatted_date,) + resultado[2:]
+                self.tree.insert('', 'end', values=formatted_row)
+                
+                self.concurso.delete(0, END)
+                self.concurso.insert(0, resultado[0])
+                self.data_conc.delete(0, END)
+                self.data_conc.insert(0, resultado[1])
+                self.entry_num.delete(0, END)
+                self.entry_num.insert(0, resultado[2])
+                if resultado[4] == "Ganhadora":
+                    self.options.set("Sim")
+                else:
+                    self.options.set("Não")
+                    self.hide_entry()  # Esconde o campo de valor premiado
+                if resultado:
+                    self.premio.insert(0, resultado[5])
+                
+            else:
+                messagebox.showinfo("Informação", f"Concurso {num_conc} não encontrado na base de dados.")
     
     def acao_bt_Registrar(self):
         valor_concurso = self.concurso.get()
@@ -58,8 +90,7 @@ class Functions():
 
     def bt_update(self):
         valor_concurso = self.concurso.get()
-        valor_data_ptbr = self.data_conc.get()
-        valor_data = datetime.strptime(valor_data_ptbr, "%d/%m/%Y").strftime("%y-%m-%d")
+        valor_data = self.data_conc.get()
         valor_numero = self.entry_num.get()
         valor_premio = self.premio.get() if self.premio is not None else None
 
@@ -98,7 +129,7 @@ class Functions():
     def show_entry(self, event=None):
         if self.options.get() == "Sim":
             self.show_label(True)
-            self.premio = Entry(self.fm_baixo)
+            self.premio = self.entrys(master=self.fm_baixo,width=175, height=2,x=20, y=118)
             self.premio.place_configure(x=20, y=118, width=175, height=25)
         else:
             self.show_label(False)
@@ -225,12 +256,14 @@ class Aplication(Functions):
         self.style.configure("my.DataEntry.TButton", font=st_f['f3'], foreground=c['az'],background=c['az'])# Define a fonte do cabeçalho
         # #widgets frame de cima
         self.labels(master=self.fm_up,text='Nº concurso',x=10,y=1)
+        
         self.seach = self.entrys(master=self.fm_up,x=10, y=20, width=110,height=20)
 
-        self.bt_seach = Button(self.fm_up,text="Pesquisar",fg=c['az'],font=st_f['f3'])
-        self.bt_seach.place_configure(x=143, y=8, width=100, height=23)
+        self.bt_seach = Button(self.fm_up,text="Pesquisar",fg=c['az'],font=st_f['f3'], command= self.seach_conc)
+        self.bt_seach.place_configure(x=143, y=17, width=100, height=23)
 
         self.labels(master=self.fm_baixo,text='Nº Concurso',x=20, y=15)
+
         self.concurso = self.entrys(master=self.fm_baixo,x=20, y=35, width=100,height=25)
         
         # self.entry_concurso = Entry(self.fm_baixo)
@@ -243,10 +276,16 @@ class Aplication(Functions):
         self.bt_registrar = Button(self.fm_baixo,text="Registrar",fg=c['az'],font=st_f['f3'],command=self.acao_bt_Registrar)
         self.bt_registrar.place_configure(x=370, y=118, width=90, height=25)
 
-        self.bt_alterar = Button(self.fm_baixo,text="Alterar",fg="#FF6C22",font=st_f['f3'],command='self.bt_update')
+        self.bt_alterar = Button(self.fm_baixo,text="Alterar",fg="#FF6C22",font=st_f['f3'],command=self.bt_update)
         self.bt_alterar.place_configure(x=480, y=118, width=80, height=25)
     
+
+        self.label = Label(self.fm_baixo,text='Numero sorteado')
+        self.label.place_configure(x=280, y=16)
+
         self.labels(master=self.fm_baixo,text='Numero sorteado',x=280, y=16)
+
+
         self.entry_num = self.entrys(master=self.fm_baixo,x=280, y=35, width=175,height=25)
 
         self.labels(master=self.fm_baixo,text='Venceu',x=485, y=16)
@@ -305,8 +344,6 @@ def insert_in_database():
     cursor.close()
 
 def gerador_de_num():
-
-
     # Lista para armazenar os números das apostas ganhadoras
     numeros_apostas_ganhadoras = []
 
